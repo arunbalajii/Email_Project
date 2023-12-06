@@ -93,7 +93,7 @@ public class EmailController {
 		return resentity;
 	}
 	
-	@CrossOrigin(origins = "http://localhost:3001")
+	@CrossOrigin(origins = "http://localhost:3000")
 	@PostMapping(path="/validateLink", consumes = "application/json")
 	public ResponseEntity<?> validateLink(@RequestBody Map<String, String> payload) throws Exception
 	{
@@ -121,7 +121,7 @@ public class EmailController {
 		return resentity;
 	}
 	
-	@CrossOrigin(origins = "http://localhost:3001")
+	@CrossOrigin(origins = "http://localhost:3000")
 	@PostMapping(path="/validatePassword", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<?> validatePassword(@RequestBody Map<String, String> payload) throws Exception
 	{
@@ -140,15 +140,15 @@ public class EmailController {
 	            {
 	            	mailId=eachvalue.getValue();
 	            }
-	            else if(eachvalue.getKey()=="OldPassword")
+	            else if(eachvalue.getKey()=="oldPassword")
 	            {
 	            	oldPassword=eachvalue.getValue();
 	            }
-	            else if(eachvalue.getKey()=="NewPassword")
+	            else if(eachvalue.getKey()=="newPassword")
 	            {
 	            	newPassword=eachvalue.getValue();
 	            }
-	            else if(eachvalue.getKey()=="ConfirmNewPassword")
+	            else if(eachvalue.getKey()=="confirmNewPassword")
 	            {
 	            	confirmNewPassword=eachvalue.getValue();
 	            }
@@ -182,7 +182,7 @@ public class EmailController {
 		return resentity;
 	}
 	
-	@CrossOrigin(origins = "http://localhost:3001")
+	@CrossOrigin(origins = "http://localhost:3000")
 	@DeleteMapping("delEmailId/{eid}")
 	@ExceptionHandler(EmailNotFound.class)
 	public ResponseEntity<?> delemp(@PathVariable("eid") String id) throws EmailNotFound
