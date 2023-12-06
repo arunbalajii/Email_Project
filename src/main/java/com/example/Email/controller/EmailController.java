@@ -156,12 +156,12 @@ public class EmailController {
 			
 			if (!newPassword.equals(confirmNewPassword))
 			{
-				response = "{\"response\" : \"New password and confirm new password doesn’t match\"}";
+				response = "New password and confirm new password doesn’t match";
 				resentity=new ResponseEntity<>(response,HttpStatus.OK);
 			}
 			else if (newPassword.equals(oldPassword))
 			{
-				response = "{\"response\" : \"New password and old password cannot be same\"}";
+				response = "New password and old password cannot be same";
 				resentity=new ResponseEntity<>(response,HttpStatus.OK);
 			}
 			else
@@ -173,7 +173,7 @@ public class EmailController {
 		catch (Exception e) 
 		{
             logger.error("Error while updating password " + e.toString());
-            response = "{\"response\" : \"Password change failed. Please try again!\"}";
+            response = "Password change failed. Please try again!";
             resentity=new ResponseEntity<>(response,HttpStatus.OK);
             //throw new Exception("Error while changing password");
             
