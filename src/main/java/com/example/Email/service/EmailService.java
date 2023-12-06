@@ -93,6 +93,9 @@ public class EmailService {
 	
 	@Value("${email.html.verified.path}")
 	String verifiedPath;
+	
+	@Value("${email.from.address}")
+	String fromAddress;
     
 	private static SecretKeySpec secretKey;
     private static byte[] key;
@@ -230,26 +233,29 @@ public class EmailService {
     	UserModel user = null;
 
     	try {
-    		List<UserModel> list = userRepo.findAll(Email);
-    		if (list.size() > 0)
-    		{
-    			user = userRepo.findEmail(Email);
-    		}
-    		else
-    		{
-    			response = "{\"response\" : \"User does not exist\"}";
-    			return response;
-    		}
-    		
-    		logger.info("Name: "+user.getName());
+    		if(!action.equalsIgnoreCase("validate") && !action.equalsIgnoreCase("EmailVerified"))
+	    	{
+	    		List<UserModel> list = userRepo.findAll(Email);
+	    		if (list.size() > 0)
+	    		{
+	    			user = userRepo.findEmail(Email);
+	    		}
+	    		else
+	    		{
+	    			response = "User does not exist";
+	    			return response;
+	    		}
+	    	}
+	    		
+    		//logger.info("Name: "+user.getName());
     		
 	    	logger.info("Email :"+ Email);
-	    	logger.info("User: "+ user.toString());
+	    	//logger.info("User: "+ user.toString());
 	    	MimeMessage htmlmessage = javaMailSender.createMimeMessage();
 	    	MimeMessageHelper helper = new MimeMessageHelper(htmlmessage, true);
 	    	//SimpleMailMessage htmlmessage = new SimpleMailMessage();
 	    	helper.setTo(Email);
-	    	helper.setFrom("no-reply@walmartlabs.com");
+	    	helper.setFrom(fromAddress);
 	    	
 	    	if(action.equalsIgnoreCase("validate"))
 	    	{
@@ -258,20 +264,15 @@ public class EmailService {
 		    	emailContent = contentV;
 		    	emailContent=emailContent.replace("type_of_action", "Email Verification");
 		    	emailContent=emailContent.replace("link_delete", deletelink);
-		    	if (user.getName() == null)
-		    	{
-		    		emailContent=emailContent.replace("email.html.user", "");
-		    	}
-		    	else
-		    	{
-		    		emailContent=emailContent.replace("email.html.user", user.getName());
-		    	}
+		    	emailContent=emailContent.replace("email.html.user", "");
+		    	
+		    	
 	    	}
 	    	else if(action.equalsIgnoreCase("Password"))
 	    	{
     			if (user.getValidated().equalsIgnoreCase("No"))
     			{
-    				response = "{\"response\" : \"Email is not verified\"}";
+    				response = "Email is not verified";
     			}
     			else
     			{
@@ -345,13 +346,13 @@ public class EmailService {
 		    	
 		    	//message.setContent(htmlTemplate, "text/html; charset=utf-8");
 		    	logger.info("Mail sent");
-		    	response = "{\"response\" : \"Mail sent\"}";
+		    	response = "Mail sent";
 	    	}
     	
     	}
     	 catch (Exception e) {
              logger.error("Error while Sending Mail: "+e.toString());
-             response = "{\"response\" : \"Mail sending failed\"}";
+             response = "Mail sending failed";
          }
     	
     	return response;
@@ -379,18 +380,18 @@ public class EmailService {
 	    			DBresponse = getUserByEmail(email);
 	    			if (DBresponse.equalsIgnoreCase("True"))
 	    			{
-	    				response = "{\"response\" : \"We have successfully verified your email id.\"}";
+	    				response = "We have successfully verified your email id.";
 	    				sendHTMLMail(email,"ABC","EmailVerified");
 	    			}
 	    		}
 	    		else
-	    			response = "{\"response\" : \"Your email verification code has expired. Please request for a new verification email.\"}";
+	    			response = "Your email verification code has expired. Please request for a new verification email.";
 	    			System.out.println(response);
     		}
     	}
     	catch (Exception e) {
              logger.error("Error while Validating Code " + e.toString());
-             response = "{\"response\" : \"Your email verification code has expired. Please request for a new verification email.\"}";
+             response = "Your email verification code has expired. Please request for a new verification email.";
              throw new Exception("Invalid String to decrypt");
          }
     	return response;
@@ -438,7 +439,7 @@ public class EmailService {
 			UserModel user = userRepo.findEmail(email);
 			if(!oldPassword.equals(user.getPassword()))
 			{
-				resp = "{\"response\" : \"Old password doesn't match\"}";
+				resp = "Old password doesn't match";
 			}
 			else
 			{
@@ -446,19 +447,19 @@ public class EmailService {
 				userRepo.save(user);
 				if (user.getPassword().equals(newPassword))
 				{
-					resp = "{\"response\" : \"Password changed successfully\"}";
+					resp = "Password changed successfully";
 					sendHTMLMail(email,"ABC","PasswordVerified");
 					
 				}
 				else
 				{
-					resp = "{\"response\" : \"Password change failed. Please try again!\"}";
+					resp = "Password change failed. Please try again!";
 				}
 			}
 		}
 		catch (Exception e) {
             logger.error("Error while updating password " + e.toString());
-            resp = "{\"response\" : \"Password change failed. Please try again!\"}";
+            resp = "Password change failed. Please try again!";
             throw new Exception("Error while changing password");
 		}
 		
