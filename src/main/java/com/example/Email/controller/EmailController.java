@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.Email.exception.EmailNotFound;
 import com.example.Email.service.EmailService;
 
-
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
 public class EmailController {
@@ -29,6 +29,9 @@ public class EmailController {
 	
 	private EmailService Eserv;
 	ResponseEntity<?> resentity;
+	
+	@Autowired
+	PasswordEncoder encoder;
 	
 	@Autowired
 	public EmailController(EmailService eserv)
@@ -59,6 +62,8 @@ public class EmailController {
 		return resentity;
 	}*/
 	
+	//@CrossOrigin(origins = "http://localhost:3000")
+	@CrossOrigin(origins = "*", maxAge = 3600)
 	@PostMapping(path="/sendHTMLEmailLink", consumes = "application/json", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> sendHTMLEmailLink(@RequestBody Map<String, String> payload) throws Exception
 	{
@@ -82,18 +87,19 @@ public class EmailController {
 		finalCode = Eserv.GenerateCode(mailId);
 		response = Eserv.sendHTMLMail(mailId,finalCode,action);
 		
+		resentity=new ResponseEntity<>(response,HttpStatus.OK);
 		
-		if (response.contains("Mail sent"))
+		/*if (response.contains("Mail sent"))
 		{
 			resentity=new ResponseEntity<>(response,HttpStatus.OK);
-		}
-		else
-			resentity=new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+		}*/
+		
 		
 		return resentity;
 	}
 	
-	@CrossOrigin(origins = "http://localhost:3000")
+	//@CrossOrigin(origins = "http://localhost:3000")
+	@CrossOrigin(origins = "*", maxAge = 3600)
 	@PostMapping(path="/validateLink", consumes = "application/json")
 	public ResponseEntity<?> validateLink(@RequestBody Map<String, String> payload) throws Exception
 	{
@@ -108,26 +114,28 @@ public class EmailController {
 			}
 			catch (Exception e) {
 	             logger.error("Error while Validating Code" + e.toString());
-	             resentity=new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+	             response = "Error while Validating Code. Please try generating a new code!";
+	             resentity=new ResponseEntity<>(response,HttpStatus.OK);
 	         }
 			if (response.contains("Code validated") || response.contains("Code invalid"))
 			{
 				resentity=new ResponseEntity<>(response,HttpStatus.OK);
 			}
 			else
-				resentity=new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+				resentity=new ResponseEntity<>(response,HttpStatus.OK);
 		}
 		
 		return resentity;
 	}
 	
-	@CrossOrigin(origins = "http://localhost:3000")
+	//@CrossOrigin(origins = "http://localhost:3000")
+	@CrossOrigin(origins = "*", maxAge = 3600)
 	@PostMapping(path="/validatePassword", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<?> validatePassword(@RequestBody Map<String, String> payload) throws Exception
 	{
 		
 		String mailId="";
-		String oldPassword="";
+		//String oldPassword="";
 		String newPassword="";
 		String confirmNewPassword="";
 		String response="";
@@ -140,10 +148,10 @@ public class EmailController {
 	            {
 	            	mailId=eachvalue.getValue();
 	            }
-	            else if(eachvalue.getKey()=="oldPassword")
+	            /*else if(eachvalue.getKey()=="oldPassword")
 	            {
 	            	oldPassword=eachvalue.getValue();
-	            }
+	            }*/
 	            else if(eachvalue.getKey()=="newPassword")
 	            {
 	            	newPassword=eachvalue.getValue();
@@ -159,14 +167,15 @@ public class EmailController {
 				response = "New password and confirm new password doesn’t match";
 				resentity=new ResponseEntity<>(response,HttpStatus.OK);
 			}
-			else if (newPassword.equals(oldPassword))
+			/*else if (newPassword.equals(oldPassword))
 			{
 				response = "New password and old password cannot be same";
 				resentity=new ResponseEntity<>(response,HttpStatus.OK);
-			}
+			}*/
 			else
 			{
-				response = Eserv.passwordValidation(mailId, oldPassword, newPassword);
+				//response = Eserv.passwordValidation(mailId, newPassword);
+				response = Eserv.passwordValidation(mailId, encoder.encode(newPassword));
 				resentity=new ResponseEntity<>(response,HttpStatus.OK);
 			}
 		}
@@ -182,7 +191,8 @@ public class EmailController {
 		return resentity;
 	}
 	
-	@CrossOrigin(origins = "http://localhost:3000")
+	//@CrossOrigin(origins = "http://localhost:3000")
+	@CrossOrigin(origins = "*", maxAge = 3600)
 	@DeleteMapping("delEmailId/{eid}")
 	@ExceptionHandler(EmailNotFound.class)
 	public ResponseEntity<?> delemp(@PathVariable("eid") String id) throws EmailNotFound
