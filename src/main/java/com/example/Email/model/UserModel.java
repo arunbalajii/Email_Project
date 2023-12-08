@@ -1,54 +1,81 @@
 package com.example.Email.model;
 
-import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Document(collection="User")
 public class UserModel {
 
 	@Id
-	public String ID;
-	private String email;
+	private String ID;
 	
+	@NotBlank
+	@Size(max = 20)
+	private String username;
+	
+	@NotBlank
+	@Size(max = 50)
+	@Email
+	private String email;
+	//private Integer id;
+	
+	@NotBlank
+	@Size(max = 120)
+	private String password;
+	private String gender;
+	private String phone;
+	private String validated;
+	//private String[] interests;
+	@DBRef
+	private Set<Role> roles = new HashSet<>();
+	
+	public Address address;
+	
+	public Name name;
+	
+	//private String[] favoriteCategories;
+	//private String[] recentSearches;
+	
+	//private String securityQuestion = new String();
+	private Integer userId;
+	public UserModel(String username, String email, String password, String gender, String phone,
+			String validated, Integer userId, Address address, Name name) {
+		super();
+		this.username = username;
+		this.email = email;
+		this.password = password;
+		this.gender = gender;
+		this.phone = phone;
+		this.validated = validated;
+		this.userId = userId;
+		this.address = address;
+		this.name = name;
+	}
 	@Override
 	public String toString() {
-		return "UserModel [email=" + email + ", id=" + id + ", password=" + password + ", avtar=" + avtar
-				+ ", validated=" + validated + ", interests=" + Arrays.toString(interests) + ", roles="
-				+ Arrays.toString(roles) + ", favoriteCategories=" + Arrays.toString(favoriteCategories)
-				+ ", recentSearches=" + Arrays.toString(recentSearches) + ", phone=" + phone + ", securityQuestion="
-				+ securityQuestion + ", name=" + name + ", address=" + address + "]";
+		return "UserModel [ID=" + ID + ", username=" + username + ", email=" + email + ", password=" + password
+				+ ", gender=" + gender + ", phone=" + phone + ", validated=" + validated + ", roles="
+				+ ", userId=" + userId + ", address=" + address + ", name=" + name + "]";
 	}
-	private Integer id;
-	private String password;
-	private String avtar;
-	private String validated;
-	private String[] interests;
-	private String[] roles;
-	private String[] favoriteCategories;
-	private String[] recentSearches;
-	private String phone;
-	private String securityQuestion = new String();
-	private String name = new String();
-	private String address= new String();
-	public UserModel(String email, Integer id, String password, String avtar, String validated, String[] interests,
-			String[] roles, String[] favoriteCategories, String[] recentSearches, String phone, String securityQuestion,
-			String name, String address) {
-		super();
-		this.email = email;
-		this.id = id;
-		this.password = password;
-		this.avtar = avtar;
-		this.validated = validated;
-		this.interests = interests;
-		this.roles = roles;
-		this.favoriteCategories = favoriteCategories;
-		this.recentSearches = recentSearches;
-		this.phone = phone;
-		this.securityQuestion = securityQuestion;
-		this.name = name;
-		this.address = address;
+	public String getID() {
+		return ID;
+	}
+	public void setID(String iD) {
+		ID = iD;
+	}
+	public String getUsername() {
+		return username;
+	}
+	public void setUsername(String username) {
+		this.username = username;
 	}
 	public String getEmail() {
 		return email;
@@ -56,53 +83,17 @@ public class UserModel {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	public Integer getId() {
-		return id;
-	}
-	public void setId(Integer id) {
-		this.id = id;
-	}
 	public String getPassword() {
 		return password;
 	}
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public String getAvtar() {
-		return avtar;
+	public String getGender() {
+		return gender;
 	}
-	public void setAvtar(String avtar) {
-		this.avtar = avtar;
-	}
-	public String getValidated() {
-		return validated;
-	}
-	public void setValidated(String validated) {
-		this.validated = validated;
-	}
-	public String[] getInterests() {
-		return interests;
-	}
-	public void setInterests(String[] interests) {
-		this.interests = interests;
-	}
-	public String[] getRoles() {
-		return roles;
-	}
-	public void setRoles(String[] roles) {
-		this.roles = roles;
-	}
-	public String[] getFavoriteCategories() {
-		return favoriteCategories;
-	}
-	public void setFavoriteCategories(String[] favoriteCategories) {
-		this.favoriteCategories = favoriteCategories;
-	}
-	public String[] getRecentSearches() {
-		return recentSearches;
-	}
-	public void setRecentSearches(String[] recentSearches) {
-		this.recentSearches = recentSearches;
+	public void setGender(String gender) {
+		this.gender = gender;
 	}
 	public String getPhone() {
 		return phone;
@@ -110,23 +101,18 @@ public class UserModel {
 	public void setPhone(String phone) {
 		this.phone = phone;
 	}
-	public String getSecurityQuestion() {
-		return securityQuestion;
+	public String getValidated() {
+		return validated;
 	}
-	public void setSecurityQuestion(String securityQuestion) {
-		this.securityQuestion = securityQuestion;
+	public void setValidated(String validated) {
+		this.validated = validated;
 	}
-	public String getName() {
-		return name;
+
+	public Integer getUserId() {
+		return userId;
 	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public String getAddress() {
-		return address;
-	}
-	public void setAddress(String address) {
-		this.address = address;
-	}
+	public void setUserId(Integer userId) {
+		this.userId = userId;
+	}	
 	
 }
