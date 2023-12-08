@@ -11,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -29,6 +30,11 @@ import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.example.Email.exception.EmailNotFound;
@@ -39,7 +45,7 @@ import com.example.Email.repository.UserRepository;
 
 @Service
 @EnableMongoRepositories
-public class EmailService {
+public class EmailService implements UserDetailsService {
 	
 	static Logger logger = LoggerFactory.getLogger(EmailService.class);
 	
@@ -112,9 +118,9 @@ public class EmailService {
          //System.out.println("Getting user by email: " + email);
          logger.info("Getting user by email: " + email);
          UserModel user = userRepo.findEmail(email);
-         //System.out.println(user.toString());
          logger.info(user.toString());
          user.setValidated("YES");
+         //System.out.println("User: "+user.toString());
          userRepo.save(user);
          //System.out.println(user.getValidated());
          logger.info(user.getValidated());
@@ -273,6 +279,7 @@ public class EmailService {
     			if (user.getValidated().equalsIgnoreCase("No"))
     			{
     				response = "Email is not verified";
+    				//System.out.println(response);
     			}
     			else
     			{
@@ -281,14 +288,14 @@ public class EmailService {
 			    	emailContent = contentP;
 			    	emailContent=emailContent.replace("type_of_action", "Password Reset");
 			    	emailContent=emailContent.replace("link_delete", deletelink);
-			    	if (user.getName() == null)
+			    	/*if (user.getName() == null)
 			    	{
 			    		emailContent=emailContent.replace("email.html.user", "");
 			    	}
 			    	else
 			    	{
 			    		emailContent=emailContent.replace("email.html.user", user.getName());
-			    	}
+			    	}*/
     			}
 	    	}
 	    	else if(action.equalsIgnoreCase("PasswordVerified"))
@@ -299,14 +306,14 @@ public class EmailService {
 		    	emailContent=emailContent.replace("type_of_action", "Password Reset");
 		    	emailContent=emailContent.replace("link_delete", deletelink);
 		    	emailContent=emailContent.replace("email.html.success.subject", "Your password reset has been completed successfully");
-		    	if (user.getName() == null)
+		    	/*if (user.getName() == null)
 		    	{
 		    		emailContent=emailContent.replace("email.html.user", "");
 		    	}
 		    	else
 		    	{
 		    		emailContent=emailContent.replace("email.html.user", user.getName());
-		    	}
+		    	}*/
 	    	}
 			else if(action.equalsIgnoreCase("EmailVerified"))
 	    	{
@@ -315,14 +322,14 @@ public class EmailService {
 	    		emailContent=emailContent.replace("type_of_action", "Email Verification");
 	    		emailContent=emailContent.replace("link_delete", deletelink);
 	    		emailContent=emailContent.replace("email.html.success.subject", "Your email has been successfully verified");
-	    		if (user.getName() == null)
+	    		/*if (user.getName() == null)
 		    	{
 		    		emailContent=emailContent.replace("email.html.user", "");
 		    	}
 		    	else
 		    	{
 		    		emailContent=emailContent.replace("email.html.user", user.getName());
-		    	}
+		    	}*/
 	    	}
 	    	if (!finalCode.isEmpty() && response.isEmpty())
 	    	{
@@ -365,7 +372,9 @@ public class EmailService {
     	String DBresponse = "";
     	try {
     		
-    		String decryptedString = decrypt(URLDecoder.decode(validationCode,"UTF-8"), secKey);
+    		//URL decoding is not required because browser automatically handles this
+    		//String decryptedString = decrypt(URLDecoder.decode(validationCode,"UTF-8"), secKey);--uncomment when testing from Postman
+    		String decryptedString = decrypt(validationCode, secKey);//This is when testing from browser
     		if (!decryptedString.isEmpty())
     		{
 	    		String email = decryptedString.substring(0, decryptedString.indexOf(encryptionPart));
@@ -429,7 +438,7 @@ public class EmailService {
 		return status;		
 	}
 	
-	public String passwordValidation(String email,String oldPassword,String newPassword) throws Exception
+	public String passwordValidation(String email,String newPassword) throws Exception
 	{
 		
 		String resp = "";
@@ -437,25 +446,25 @@ public class EmailService {
 		try
 		{
 			UserModel user = userRepo.findEmail(email);
-			if(!oldPassword.equals(user.getPassword()))
+			/*if(!oldPassword.equals(user.getPassword()))
 			{
 				resp = "Old password doesn't match";
 			}
 			else
+			{*/
+			user.setPassword(newPassword);
+			userRepo.save(user);
+			if (user.getPassword().equals(newPassword))
 			{
-				user.setPassword(newPassword);
-				userRepo.save(user);
-				if (user.getPassword().equals(newPassword))
-				{
-					resp = "Password changed successfully";
-					sendHTMLMail(email,"ABC","PasswordVerified");
-					
-				}
-				else
-				{
-					resp = "Password change failed. Please try again!";
-				}
+				resp = "Password changed successfully";
+				sendHTMLMail(email,"ABC","PasswordVerified");
+				
 			}
+			else
+			{
+				resp = "Password change failed. Please try again!";
+			}
+			//}
 		}
 		catch (Exception e) {
             logger.error("Error while updating password " + e.toString());
@@ -465,4 +474,13 @@ public class EmailService {
 		
 		return resp;
 	}
+
+	@Override
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+		UserModel user = userRepo.findByEmail(email)
+				.orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + email));
+		return (UserDetails) user;
+	}
+	
+	
 }
